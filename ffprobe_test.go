@@ -9,6 +9,7 @@ import (
 	ffprobe "github.com/smith-30/go-ffprobe"
 )
 
+// jsonStr is sample exec ffprobe result.
 var jsonStr = `
 {
     "streams": [
@@ -131,7 +132,7 @@ var jsonStr = `
 }
 `
 
-// set mock func to ExecFunc
+// setExecFunc set mock func to ExecFunc
 func setExecFunc(resultJson string, err error) {
 	ffprobe.ExecFunc = func(f string) ([]byte, error) { return []byte(resultJson), err }
 }

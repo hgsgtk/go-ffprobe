@@ -6,9 +6,11 @@ import (
 )
 
 var (
+	// ExecFunc is command func.
 	ExecFunc = ExecCmd
 )
 
+// Execute exec command and bind result to struct.
 func Execute(fileName string) (r Result, err error) {
 	out, err := ExecFunc(fileName)
 
@@ -23,6 +25,7 @@ func Execute(fileName string) (r Result, err error) {
 	return r, nil
 }
 
+// ExecCmd exec ffprobe command and return result of json.
 func ExecCmd(fileName string) ([]byte, error) {
 	return exec.Command("ffprobe",
 		"-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", fileName).Output()
