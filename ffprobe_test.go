@@ -1,11 +1,10 @@
 package go_ffprobe_test
 
 import (
-	"testing"
-
 	"encoding/json"
-
+	"errors"
 	"reflect"
+	"testing"
 
 	ffprobe "github.com/smith-30/go-ffprobe"
 )
@@ -133,26 +132,56 @@ var jsonStr = `
 `
 
 // set mock func to ExecFunc
-func setExecFunc(f string) {
-	ffprobe.ExecFunc = func(f string) ([]byte, error) { return []byte(jsonStr), nil }
+func setExecFunc(resultJson string, err error) {
+	ffprobe.ExecFunc = func(f string) ([]byte, error) { return []byte(resultJson), err }
 }
 
 func TestExecute(t *testing.T) {
-	setExecFunc("-")
-
+	// ready exp object.
 	jsonBytes := ([]byte)(jsonStr)
-	exp := new(ffprobe.Result)
+	exp := ffprobe.Result{}
 
-	if err := json.Unmarshal(jsonBytes, exp); err != nil {
+	if err := json.Unmarshal(jsonBytes, &exp); err != nil {
 		t.Errorf("JSON Unmarshal error: %v", err)
 		return
 	}
 
-	act, _ := ffprobe.Execute("-")
+	var tests = []struct {
+		exp        ffprobe.Result
+		resultJson string
+		expErr     error
+	}{
+		{
+			exp:        exp,
+			resultJson: jsonStr,
+			expErr:     nil,
+		},
+		{
+			exp:        ffprobe.Result{},
+			resultJson: "",
+			expErr:     errors.New("failed"),
+		},
+		{
+			exp:        ffprobe.Result{},
+			resultJson: "-",
+			expErr:     nil,
+		},
+	}
 
-	if reflect.DeepEqual(act, exp) {
-		t.Errorf("\n\n failed. ")
-		t.Errorf("\n\n act. %v", act)
-		t.Errorf("\n exp. %v", exp)
+	for _, test := range tests {
+		setExecFunc(test.resultJson, test.expErr)
+
+		act, err := ffprobe.Execute("-")
+
+		if err == nil {
+			if !reflect.DeepEqual(act, test.exp) {
+				t.Errorf(`
+					failed.
+					act. %v
+					exp. %v
+				`, act, test.exp)
+			}
+			continue
+		}
 	}
 }
