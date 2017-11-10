@@ -16,7 +16,7 @@ func Execute(fileName string) (r Result, err error) {
 		return r, err
 	}
 
-	if err := json.Unmarshal(out, r); err != nil {
+	if err := json.Unmarshal(out, &r); err != nil {
 		return r, err
 	}
 
